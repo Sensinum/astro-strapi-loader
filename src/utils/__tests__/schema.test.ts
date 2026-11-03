@@ -939,6 +939,77 @@ describe("StrapiSchemaGenerator", () => {
       expect(schema.shape).toHaveProperty("childCoverages");
     });
 
+    it("skips nested relations whose targetAttribute is already on the populate path", () => {
+      // Hits generateAttributeSchema's early `return null` when pupulatedRelations
+      // already contains the current attribute's targetAttribute (Jest 30 branch coverage).
+      const typeA: StrapiContentType = {
+        apiID: "pop-a",
+        uid: "api::pop-a.pop-a",
+        plugin: undefined,
+        schema: {
+          uid: "api::pop-a.pop-a",
+          kind: "collectionType",
+          collectionName: "pop_as",
+          singularName: "pop-a",
+          pluralName: "pop-as",
+          displayName: "Pop A",
+          draftAndPublish: true,
+          pluginOptions: {},
+          visible: true,
+          attributes: {
+            name: { type: "string", required: true },
+            toB: {
+              type: "relation",
+              relation: "oneToOne",
+              target: "api::pop-b.pop-b",
+              targetAttribute: "fromA",
+            },
+          },
+        },
+      };
+
+      const typeB: StrapiContentType = {
+        apiID: "pop-b",
+        uid: "api::pop-b.pop-b",
+        plugin: undefined,
+        schema: {
+          uid: "api::pop-b.pop-b",
+          kind: "collectionType",
+          collectionName: "pop_bs",
+          singularName: "pop-b",
+          pluralName: "pop-bs",
+          displayName: "Pop B",
+          draftAndPublish: true,
+          pluginOptions: {},
+          visible: true,
+          attributes: {
+            title: { type: "string", required: true },
+            fromA: {
+              type: "relation",
+              relation: "oneToOne",
+              target: "api::pop-a.pop-a",
+              targetAttribute: "toB",
+            },
+            // Same targetAttribute as already pushed onto the populate path via A.toB
+            alsoFromA: {
+              type: "relation",
+              relation: "manyToOne",
+              target: "api::pop-a.pop-a",
+              targetAttribute: "fromA",
+            },
+          },
+        },
+      };
+
+      const testGenerator = new StrapiSchemaGenerator([typeA, typeB], []);
+      const schema = testGenerator.generateSchema("pop-a");
+
+      expect(schema.shape).toHaveProperty("name");
+      expect(schema.shape).toHaveProperty("toB");
+      // Nested B.alsoFromA is skipped (null schema → omitted from shape)
+      expect(schema.shape.toB).toBeDefined();
+    });
+
     it("should handle indirect circular relations (A -> B -> A)", () => {
       const typeA: StrapiContentType = {
         apiID: "type-a",
