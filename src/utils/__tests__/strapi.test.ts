@@ -1,4 +1,21 @@
-import { fetchContentTypes, fetchContent, fetchComponents, generateStrapiSchema } from "../strapi";
+import {
+  fetchContentTypes,
+  fetchContent,
+  fetchComponents,
+  generateStrapiSchema,
+  generateCollections,
+} from "../strapi";
+
+jest.mock("../loader", () => ({
+  strapiLoader: jest.fn((contentType: string, options: any) => ({
+    name: options.collectionName || contentType,
+    load: jest.fn(),
+  })),
+}));
+
+jest.mock("astro:content", () => ({
+  defineCollection: jest.fn((config: any) => config),
+}));
 
 // Mock fetch
 global.fetch = jest.fn();
@@ -307,6 +324,113 @@ describe("Strapi Utils", () => {
           token: "test-token",
         }),
       ).rejects.toThrow("Failed to fetch from Strapi: Server Error");
+    });
+  });
+
+  describe("generateCollections", () => {
+    const mockContentTypesResponse = {
+      data: [
+        {
+          apiID: "article",
+          uid: "api::article.article",
+          plugin: undefined,
+          schema: {
+            uid: "api::article.article",
+            kind: "collectionType",
+            collectionName: "articles",
+            singularName: "article",
+            pluralName: "articles",
+            displayName: "Article",
+            draftAndPublish: true,
+            pluginOptions: {},
+            visible: true,
+            attributes: {
+              title: { type: "string", required: true },
+              content: { type: "text" },
+            },
+          },
+        },
+        {
+          apiID: "homepage",
+          uid: "api::homepage.homepage",
+          plugin: undefined,
+          schema: {
+            uid: "api::homepage.homepage",
+            kind: "singleType",
+            collectionName: "homepages",
+            singularName: "homepage",
+            pluralName: "homepages",
+            displayName: "Homepage",
+            draftAndPublish: true,
+            pluginOptions: {},
+            visible: true,
+            attributes: {
+              title: { type: "string", required: true },
+            },
+          },
+        },
+      ],
+    };
+
+    const mockComponentsResponse = { data: [] };
+
+    const mockSchemaFetches = () => {
+      (global.fetch as jest.Mock)
+        .mockResolvedValueOnce({
+          ok: true,
+          json: () => Promise.resolve(mockContentTypesResponse),
+        })
+        .mockResolvedValueOnce({
+          ok: true,
+          json: () => Promise.resolve(mockComponentsResponse),
+        });
+    };
+
+    it("should generate all collections when reqCollections is empty", async () => {
+      mockSchemaFetches();
+      const collections = await generateCollections({
+        url: "http://localhost:1337",
+        token: "test-token",
+      });
+
+      expect(Object.keys(collections).sort()).toEqual(
+        ["articles", "homepage"].sort(),
+      );
+    });
+
+    it("should filter by requested collection names and support markdown", async () => {
+      mockSchemaFetches();
+      const collections = await generateCollections(
+        {
+          url: "http://localhost:1337",
+          token: "test-token",
+        },
+        [
+          {
+            name: "articles",
+            collectionName: "blog",
+            markdown: { field: "content" },
+          },
+          "homepage",
+        ],
+      );
+
+      expect(Object.keys(collections).sort()).toEqual(["blog", "homepage"].sort());
+      expect(collections.blog).toBeDefined();
+      expect(collections.homepage).toBeDefined();
+    });
+
+    it("should accept string-only collection requests", async () => {
+      mockSchemaFetches();
+      const collections = await generateCollections(
+        {
+          url: "http://localhost:1337",
+          token: "test-token",
+        },
+        ["articles"],
+      );
+
+      expect(Object.keys(collections)).toEqual(["articles"]);
     });
   });
 });
