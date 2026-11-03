@@ -5,16 +5,16 @@
   <h1>Astro Strapi Loader</h1>
   <p>Integration of Astro with Strapi CMS that enables easy data loading from Strapi Content API</p>
   <a href="https://www.npmjs.org/package/@sensinum/astro-strapi-loader">
-    <img alt="GitHub package.json version" src="https://img.shields.io/github/package-json/v/VirtusLab-Open-Source/astro-strapi-loader?label=npm&logo=npm">
+    <img alt="GitHub package.json version" src="https://img.shields.io/github/package-json/v/Sensinum/astro-strapi-loader?label=npm&logo=npm">
   </a>
   <a href="https://www.npmjs.org/package/@sensinum/astro-strapi-loader">
     <img src="https://img.shields.io/npm/dm/%40sensinum%2Fastro-strapi-loader.svg" alt="Monthly download on NPM" />
   </a>
-  <a href="https://circleci.com/gh/VirtusLab-Open-Source/astro-strapi-loader">
-    <img src="https://circleci.com/gh/VirtusLab-Open-Source/astro-strapi-loader.svg?style=shield" alt="CircleCI" />
+  <a href="https://github.com/Sensinum/astro-strapi-loader/actions/workflows/ci.yml">
+    <img src="https://github.com/Sensinum/astro-strapi-loader/actions/workflows/ci.yml/badge.svg" alt="CI" />
   </a>
-  <a href="https://codecov.io/gh/VirtusLab-Open-Source/astro-strapi-loader">
-    <img src="https://codecov.io/gh/VirtusLab-Open-Source/astro-strapi-loader/coverage.svg?branch=main" alt="codecov.io" />
+  <a href="https://codecov.io/gh/Sensinum/astro-strapi-loader">
+    <img src="https://codecov.io/gh/Sensinum/astro-strapi-loader/coverage.svg?branch=main" alt="codecov.io" />
   </a>
 </div>
 
@@ -36,7 +36,7 @@
 
 * Astro ^6.0.0 || ^7.0.0
 * Strapi ^5.0.0
-* Node.js >= 22.12.0
+* Node.js >= 22.0.0 <= 26.x.x
 
 ## 📦 Installation
 
@@ -398,6 +398,6 @@ Please make sure to:
 
 ## 📄 License
 
-Copyright © [Sensinum](https://sensinum.com) &amp; [VirtusLab](https://virtuslab.com)
+Copyright © [Sensinum](https://sensinum.com)
 
 This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md) file for details.
