@@ -7,8 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+### Added
+
+- **Native Markdown rendering** (opt-in) — `markdown` on `StrapiLoaderOptions` / `StrapiCollection` uses Astro `LoaderContext.renderMarkdown()` so `render()` / `<Content />` inherit the project markdown config (#6).
+  - `field` (dot-path) and `getMarkdown` extractor
+  - `includeBody` (default `true`) and `format: "markdown" | "html"`
+  - Helpers: `getValueByPath`, `resolveMarkdownSource`, `createHtmlRenderedContent`, `buildEntryRenderedContent`
+- Unit tests for markdown helpers and loader integration (including locales).
+
 ### Changed
 
+- Base load path is unchanged when `markdown` is omitted.
 - Migrated CI/CD from CircleCI to GitHub Actions (`ci.yml` + two-phase `release.yml` with npm Trusted Publisher / OIDC).
 - Rebranded ownership URLs and badges to **Sensinum**; LICENSE copyright → Sensinum Sp. z o.o.
 - `package.json`: `author` / `repository` / `bugs` / `homepage` / `engines` (`>=22.0.0 <=26.x.x`) for provenance; `packageManager` yarn@4.13.0; `coverage` script with lcov.
