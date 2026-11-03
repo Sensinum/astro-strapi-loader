@@ -1,0 +1,11 @@
+# Allow tiny project-coverage swings from tooling/instrumentation bumps (e.g. Jest major).
+# Patch coverage still required; source regressions remain gated.
+coverage:
+  status:
+    project:
+      default:
+        target: auto
+        threshold: 1%
+    patch:
+      default:
+        target: auto
