@@ -18,6 +18,10 @@ describe("markdown helpers", () => {
       expect(getValueByPath({}, "a.b")).toBeUndefined();
       expect(getValueByPath({ a: 1 }, "a.b")).toBeUndefined();
     });
+
+    it("returns undefined for an empty path", () => {
+      expect(getValueByPath({ content: "x" }, "")).toBeUndefined();
+    });
   });
 
   describe("resolveMarkdownSource", () => {
@@ -48,6 +52,12 @@ describe("markdown helpers", () => {
         },
       );
       expect(source).toBe("async:x");
+    });
+
+    it("returns undefined when neither field nor getMarkdown is set", async () => {
+      expect(
+        await resolveMarkdownSource({ content: "# Hi" }, {}),
+      ).toBeUndefined();
     });
 
     it("skips empty / non-string values", async () => {
@@ -145,6 +155,26 @@ describe("markdown helpers", () => {
       );
       expect(renderMarkdown).toHaveBeenCalledWith("# Post\n\nBody");
       expect(result.body).toBe("# Post\n\nBody");
+    });
+
+    it("returns empty object when the resolved source is empty", async () => {
+      await expect(
+        buildEntryRenderedContent(
+          { content: "   " },
+          { field: "content" },
+          renderMarkdown,
+        ),
+      ).resolves.toEqual({});
+      expect(renderMarkdown).not.toHaveBeenCalled();
+    });
+
+    it("keeps body without rendered when markdown format has no renderMarkdown", async () => {
+      const result = await buildEntryRenderedContent(
+        { content: "# Hello" },
+        { field: "content" },
+        undefined,
+      );
+      expect(result).toEqual({ body: "# Hello" });
     });
   });
 });

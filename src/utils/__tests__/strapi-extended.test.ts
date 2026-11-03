@@ -96,6 +96,7 @@ describe("Strapi Extended Features", () => {
 
     it("should create collection with all options", () => {
       const idGenerator = (data: Record<string, unknown>) => data.slug as string;
+      const markdown = { field: "content" as const };
       const collection = generateCollection(
         "pages",
         testSchema,
@@ -104,6 +105,7 @@ describe("Strapi Extended Features", () => {
           collectionName: "pagesMultilang",
           idGenerator,
           locale: ["en", "de"],
+          markdown,
           query: { filters: { published: true } },
         }
       );
@@ -115,8 +117,29 @@ describe("Strapi Extended Features", () => {
           collectionName: "pagesMultilang",
           idGenerator,
           locale: ["en", "de"],
+          markdown,
         }),
         { filters: { published: true } }
+      );
+    });
+
+    it("should pass markdown options to the loader", () => {
+      const markdown = {
+        getMarkdown: (data: Record<string, unknown>) => data.body as string,
+        includeBody: false,
+      };
+      const collection = generateCollection(
+        "articles",
+        testSchema,
+        mockOptions,
+        { markdown },
+      );
+
+      expect(collection).toBeDefined();
+      expect(mockStrapiLoader).toHaveBeenCalledWith(
+        "articles",
+        expect.objectContaining({ markdown }),
+        {},
       );
     });
 
