@@ -3,4 +3,5 @@
 
 yarn lint
 yarn test
-yarn check 
+yarn check
+yarn build
