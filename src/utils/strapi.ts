@@ -63,10 +63,63 @@ async function strapiRequest<T>(options: StrapiRequestOptions): Promise<T> {
   });
 
   if (!response.ok) {
-    throw new Error(`Failed to fetch from Strapi: ${response.statusText}`);
+    throw new Error(await formatStrapiRequestError(response));
   }
 
   return response.json();
+}
+
+const STRAPI_ERROR_BODY_LIMIT = 2_000;
+
+async function formatStrapiRequestError(response: Response): Promise<string> {
+  const base = `Failed to fetch from Strapi: ${response.statusText}`;
+  let responseText = "";
+
+  try {
+    responseText = (await response.text()).trim();
+  } catch {
+    return base;
+  }
+
+  if (!responseText) {
+    return base;
+  }
+
+  const jsonMessage = extractStrapiErrorMessage(responseText);
+  if (jsonMessage) {
+    return `${base}\nStrapi error: ${jsonMessage}`;
+  }
+
+  const truncated =
+    responseText.length > STRAPI_ERROR_BODY_LIMIT
+      ? `${responseText.slice(0, STRAPI_ERROR_BODY_LIMIT)}…`
+      : responseText;
+
+  return `${base}\nStrapi response: ${truncated}`;
+}
+
+function extractStrapiErrorMessage(responseText: string): string | undefined {
+  try {
+    const parsed = JSON.parse(responseText) as {
+      error?: { message?: unknown; name?: unknown; details?: unknown };
+    };
+    const message = parsed?.error?.message;
+    if (typeof message !== "string" || !message.trim()) {
+      return undefined;
+    }
+
+    const name =
+      typeof parsed.error?.name === "string" ? parsed.error.name : undefined;
+    const details = parsed.error?.details;
+    const detailSuffix =
+      details !== undefined && details !== null
+        ? ` (${JSON.stringify(details)})`
+        : "";
+
+    return name ? `${name}: ${message}${detailSuffix}` : `${message}${detailSuffix}`;
+  } catch {
+    return undefined;
+  }
 }
 
 export async function fetchContentTypes(

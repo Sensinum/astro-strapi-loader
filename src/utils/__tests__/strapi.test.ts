@@ -70,10 +70,11 @@ describe("Strapi Utils", () => {
       );
     });
 
-    it("should throw error on failed request", async () => {
+    it("should throw error on failed request without a body", async () => {
       (global.fetch as jest.Mock).mockResolvedValueOnce({
         ok: false,
         statusText: "Not Found",
+        text: () => Promise.resolve(""),
       });
 
       await expect(
@@ -81,6 +82,50 @@ describe("Strapi Utils", () => {
           url: "http://localhost:1337",
         }),
       ).rejects.toThrow("Failed to fetch from Strapi: Not Found");
+    });
+
+    it("should include Strapi JSON error details in the thrown error", async () => {
+      const responseText = JSON.stringify({
+        data: null,
+        error: {
+          status: 400,
+          name: "ValidationError",
+          message: "Invalid key seo",
+          details: { key: "seo", path: null, source: "query", param: "populate" },
+        },
+      });
+
+      (global.fetch as jest.Mock).mockResolvedValueOnce({
+        ok: false,
+        statusText: "Bad Request",
+        text: () => Promise.resolve(responseText),
+      });
+
+      await expect(
+        fetchContentTypes({
+          url: "http://localhost:1337",
+        }),
+      ).rejects.toThrow(
+        'Failed to fetch from Strapi: Bad Request\nStrapi error: ValidationError: Invalid key seo ({"key":"seo","path":null,"source":"query","param":"populate"})',
+      );
+    });
+
+    it("should include truncated non-JSON Strapi response bodies", async () => {
+      const responseText = "x".repeat(2_100);
+
+      (global.fetch as jest.Mock).mockResolvedValueOnce({
+        ok: false,
+        statusText: "Bad Gateway",
+        text: () => Promise.resolve(responseText),
+      });
+
+      await expect(
+        fetchContentTypes({
+          url: "http://localhost:1337",
+        }),
+      ).rejects.toThrow(
+        `Failed to fetch from Strapi: Bad Gateway\nStrapi response: ${"x".repeat(2_000)}…`,
+      );
     });
   });
 
@@ -126,6 +171,7 @@ describe("Strapi Utils", () => {
       (global.fetch as jest.Mock).mockResolvedValueOnce({
         ok: false,
         statusText: "Not Found",
+        text: () => Promise.resolve(""),
       });
 
       await expect(
@@ -192,6 +238,7 @@ describe("Strapi Utils", () => {
       (global.fetch as jest.Mock).mockResolvedValueOnce({
         ok: false,
         statusText: "Unauthorized",
+        text: () => Promise.resolve(""),
       });
 
       await expect(
@@ -293,6 +340,7 @@ describe("Strapi Utils", () => {
       (global.fetch as jest.Mock).mockResolvedValueOnce({
         ok: false,
         statusText: "Server Error",
+        text: () => Promise.resolve(""),
       });
 
       await expect(
@@ -316,6 +364,7 @@ describe("Strapi Utils", () => {
         .mockResolvedValueOnce({
           ok: false,
           statusText: "Server Error",
+          text: () => Promise.resolve(""),
         });
 
       await expect(
