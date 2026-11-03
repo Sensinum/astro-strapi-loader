@@ -15,9 +15,10 @@ export default {
   moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json', 'node'],
   testPathIgnorePatterns: ['/node_modules/', '/dist/'],
   transformIgnorePatterns: ['/node_modules/(?!astro/).*'],
+  coverageReporters: ['text', 'lcov'],
   globals: {
     'ts-jest': {
       useESM: true
     }
   }
-}; 
+};
